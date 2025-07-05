@@ -1,10 +1,10 @@
-<!-- templates/index.html -->
+<!-- templates/index.html v2.0 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clarity Board</title>
+    <title>Clarity Board 2.0</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,14 +15,43 @@
         <h1>Clarity Board</h1>
         <form id="add-task-form">
             <input type="text" id="task-input" placeholder="Add a new note..." required>
+            <!-- NEW: Datetime selector for new tasks -->
+            <input type="datetime-local" id="deadline-input">
             <button type="submit">Add Note</button>
         </form>
+        
+        <div id="live-clock"></div>
+
+        <div class="controls">
+            <!-- Story 2: Sort Toggle -->
+            <div class="sort-container">
+                <label for="sort-toggle">Sort by Deadline</label>
+                <input type="checkbox" id="sort-toggle">
+            </div>
+            <!-- Story 4: Settings Icon -->
+            <button id="settings-btn" class="icon-btn">⚙️</button>
+        </div>
+        
     </header>
     <main>
         <div id="board">
             <!-- Tasks will be dynamically inserted here -->
         </div>
     </main>
+
+    <!-- Story 4: Settings Modal -->
+    <div id="settings-modal" class="modal-container hidden">
+        <div class="modal-content">
+            <button id="close-modal-btn" class="close-btn">×</button>
+            <h2>Settings</h2>
+            <div class="form-group">
+                <label for="warning-time">Warn me</label>
+                <input type="number" id="warning-time" min="0">
+                <label for="warning-time">hours before deadline</label>
+            </div>
+        </div>
+    </div>
+
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>

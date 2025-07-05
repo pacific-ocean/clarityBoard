@@ -1,4 +1,4 @@
-# app.py
+# app.py v2.0
 
 import sqlite3
 from flask import Flask, jsonify, request, render_template, g
@@ -6,89 +6,101 @@ from flask import Flask, jsonify, request, render_template, g
 app = Flask(__name__)
 DATABASE = 'clarity_board.db'
 
-# --- Database Helper Functions ---
-
+# --- Database Helper Functions (Unchanged) ---
 def get_db():
-    """Connects to the specific database."""
     db = getattr(g, '_database', None)
     if db is None:
         db = g._database = sqlite3.connect(DATABASE)
-        # This allows us to access columns by name
         db.row_factory = sqlite3.Row
     return db
 
 @app.teardown_appcontext
 def close_connection(exception):
-    """Closes the database again at the end of the request."""
     db = getattr(g, '_database', None)
     if db is not None:
         db.close()
 
-def init_db():
-    """Initializes the database schema."""
-    with app.app_context():
-        db = get_db()
-        with app.open_resource('schema.sql', mode='r') as f:
-            db.cursor().executescript(f.read())
-        db.commit()
-    print("Initialized the database.")
-
-# --- API Endpoints ---
+# --- API Endpoints (Updated) ---
 
 @app.route('/')
 def index():
-    """Serves the main HTML page."""
     return render_template('index.html')
 
 @app.route('/api/tasks', methods=['GET'])
 def get_tasks():
-    """Fetches all tasks, ordered by their position."""
+    # Story 2: Automatic Sorting by Deadline
+    sort_by = request.args.get('sort', 'position') # Default to position
+    
+    if sort_by == 'deadline':
+        # Sort by deadline, with NULLs last, then by position
+        order_clause = 'CASE WHEN deadline IS NULL THEN 1 ELSE 0 END, deadline ASC, position ASC'
+    else:
+        # Default sort by manual position
+        order_clause = 'position ASC'
+
     db = get_db()
-    cursor = db.execute('SELECT * FROM tasks ORDER BY position ASC')
+    cursor = db.execute(f'SELECT * FROM tasks ORDER BY {order_clause}') # Use f-string safely as we control the input
     tasks = [dict(row) for row in cursor.fetchall()]
     return jsonify(tasks)
 
 @app.route('/api/tasks', methods=['POST'])
 def add_task():
-    """Adds a new task."""
+    # Story 1: Setting a Deadline (optional)
     new_task = request.get_json()
+    content = new_task.get('content')
+    deadline = new_task.get('deadline') # Will be None if not provided
+
     db = get_db()
-    
-    # Get the highest current position to append the new task
     cursor = db.execute('SELECT MAX(position) as max_pos FROM tasks')
     max_pos = cursor.fetchone()['max_pos']
     new_position = (max_pos or 0) + 1
 
     cursor = db.execute(
-        'INSERT INTO tasks (content, position) VALUES (?, ?)',
-        [new_task['content'], new_position]
+        'INSERT INTO tasks (content, position, deadline) VALUES (?, ?, ?)',
+        [content, new_position, deadline]
     )
     db.commit()
     
     new_id = cursor.lastrowid
     created_task = {
         'id': new_id,
-        'content': new_task['content'],
+        'content': content,
         'is_completed': 0,
-        'position': new_position
+        'position': new_position,
+        'deadline': deadline
     }
     return jsonify(created_task), 201
 
 @app.route('/api/tasks/<int:task_id>', methods=['PUT'])
 def update_task(task_id):
-    """Updates a task, specifically for completion status."""
+    # Story 1: Updating Deadline / Completion
     update_data = request.get_json()
     db = get_db()
-    db.execute(
-        'UPDATE tasks SET is_completed = ? WHERE id = ?',
-        [update_data['is_completed'], task_id]
-    )
+
+    # Build the query dynamically based on what's provided
+    fields_to_update = []
+    values = []
+    if 'is_completed' in update_data:
+        fields_to_update.append('is_completed = ?')
+        values.append(update_data['is_completed'])
+    
+    if 'deadline' in update_data:
+        fields_to_update.append('deadline = ?')
+        values.append(update_data['deadline'])
+
+    if not fields_to_update:
+        return jsonify({'message': 'No update data provided'}), 400
+
+    query = f"UPDATE tasks SET {', '.join(fields_to_update)} WHERE id = ?"
+    values.append(task_id)
+
+    db.execute(query, values)
     db.commit()
     return jsonify({'message': 'Task updated successfully'})
 
+# --- Unchanged Endpoints ---
 @app.route('/api/tasks/<int:task_id>', methods=['DELETE'])
 def delete_task(task_id):
-    """Deletes a task."""
     db = get_db()
     db.execute('DELETE FROM tasks WHERE id = ?', [task_id])
     db.commit()
@@ -96,21 +108,16 @@ def delete_task(task_id):
 
 @app.route('/api/tasks/reorder', methods=['POST'])
 def reorder_tasks():
-    """Updates the position of all tasks based on a provided list of IDs."""
     data = request.get_json()
     ordered_ids = data.get('ordered_ids', [])
-    
     db = get_db()
-    # Using a transaction ensures atomicity
     with db:
         for index, task_id in enumerate(ordered_ids):
             db.execute('UPDATE tasks SET position = ? WHERE id = ?', [index, task_id])
-    
     return jsonify({'message': 'Tasks reordered successfully'})
 
-# --- CLI Command for Database Initialization ---
+# --- CLI and Main execution (unchanged from our last revision) ---
 def init_db_main():
-    """A standalone function to initialize the DB."""
     try:
         conn = sqlite3.connect(DATABASE)
         with open('schema.sql', mode='r') as f:
@@ -123,11 +130,9 @@ def init_db_main():
 
 @app.cli.command('init-db')
 def init_db_command():
-    """Clear existing data and create new tables."""
     init_db_main()
 
 if __name__ == '__main__':
-    # You can now also run `python app.py init` as an alternative
     import sys
     if len(sys.argv) > 1 and sys.argv[1] == 'init':
         init_db_main()

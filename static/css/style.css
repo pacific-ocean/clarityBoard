@@ -1,7 +1,7 @@
-/* static/css/style.css */
+/* static/css/style.css v2.0 */
 body {
     font-family: 'Kalam', cursive, sans-serif;
-    background-color: #5d6d7e; /* A cork-board like color */
+    background-color: #5d6d7e;
     color: #333;
     margin: 0;
     padding: 20px;
@@ -9,8 +9,13 @@ body {
 
 header {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
     color: #fff;
+    position: relative;
+}
+
+#add-task-form {
+    margin-bottom: 20px;
 }
 
 #add-task-form input {
@@ -31,21 +36,42 @@ header {
     cursor: pointer;
 }
 
+.controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+}
+
+.sort-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #fff;
+}
+
 #board {
     display: flex;
     flex-wrap: wrap;
-    gap: 20px;
-    padding: 20px;
+    gap: 40px;
+    padding: 40px;
     justify-content: center;
 }
 
 .note {
-    width: 220px;
-    height: 220px;
+    width: 200px;
+    height: 200px;
     padding: 15px;
     background-color: #fefabc;
-    box-shadow: 5px 5px 7px rgba(33,33,33,.7);
-    transition: transform 0.2s;
+    box-shadow: 10px 10px 14px rgba(33,33,33,.7);
+    transition: transform 0.2s, box-shadow 0.3s;
     cursor: grab;
     display: flex;
     flex-direction: column;
@@ -72,6 +98,12 @@ header {
     opacity: 0.7;
 }
 
+.note .deadline {
+    font-size: 12px;
+    color: #555;
+    margin-top: 5px;
+}
+
 .note .actions {
     display: flex;
     justify-content: space-between;
@@ -79,10 +111,89 @@ header {
     font-size: 14px;
 }
 
-.note .delete-btn {
+.note .actions button, .note .actions .deadline-btn {
     background: none;
     border: none;
     cursor: pointer;
     font-size: 18px;
-    color: #c0392b;
+}
+
+.note .actions .delete-btn { color: #c0392b; }
+.note .actions .deadline-btn { color: #2980b9; }
+
+/* Story 3 & 4: Alert Styles */
+@keyframes flash-red {
+    0%, 100% { box-shadow: 20px 20px 30px rgba(33,33,33,.7), 0 0 0px #e74c3c; }
+    50% { box-shadow: 20px 20px 30px rgba(33,33,33,.7), 0 0 40px #e74c3c; }
+}
+
+@keyframes pulse-yellow {
+    0%, 100% { box-shadow: 20px 20px 30px rgba(33,33,33,.7), 0 0 0px #f1c40f; }
+    50% { box-shadow: 20px 20px 30px rgba(33,33,33,.7), 0 0 40px #f1c40f; }
+}
+
+.note.overdue {
+    animation: flash-red 1.5s infinite;
+}
+
+.note.warning {
+    animation: pulse-yellow 2s infinite;
+}
+
+
+/* Story 4: Modal Styles */
+.modal-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-container.hidden {
+    display: none;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    padding: 20px;
+    border-radius: 5px;
+    width: 400px;
+    position: relative;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 24px;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+.form-group {
+    margin-top: 20px;
+}
+
+.temp-deadline-input {
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 10px;
+}
+
+#live-clock {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 16px;
+    font-family: 'Courier New', Courier, monospace; /* Use a monospace font for a clock-like feel */
+    background-color: rgba(0,0,0,0.2);
+    padding: 5px 10px;
+    border-radius: 4px;
 }
