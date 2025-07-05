@@ -1,0 +1,88 @@
+/* static/css/style.css */
+body {
+    font-family: 'Kalam', cursive, sans-serif;
+    background-color: #5d6d7e; /* A cork-board like color */
+    color: #333;
+    margin: 0;
+    padding: 20px;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #fff;
+}
+
+#add-task-form input {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 300px;
+}
+
+#add-task-form button {
+    padding: 10px 15px;
+    font-size: 16px;
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#board {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 20px;
+    justify-content: center;
+}
+
+.note {
+    width: 220px;
+    height: 220px;
+    padding: 15px;
+    background-color: #fefabc;
+    box-shadow: 5px 5px 7px rgba(33,33,33,.7);
+    transition: transform 0.2s;
+    cursor: grab;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.note:hover {
+    transform: scale(1.05) rotate(1deg);
+}
+
+.note.dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+}
+
+.note .content {
+    flex-grow: 1;
+    word-wrap: break-word;
+    overflow-y: auto;
+}
+
+.note.completed .content {
+    text-decoration: line-through;
+    opacity: 0.7;
+}
+
+.note .actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+}
+
+.note .delete-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    color: #c0392b;
+}
